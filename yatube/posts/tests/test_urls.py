@@ -33,30 +33,22 @@ class PostURLTests(TestCase):
         )
 
     def test_home_url_all(self):
-        """Проверить доступность главной страницы, для всех пользователей"""
         response = self.guest_client.get('/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_group_url(self):
-        """Проверить доступность групповой страницы, для всех пользователей"""
         response = self.guest_client.get('/group/test-slug/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_profile_url(self):
-        """Проверить доступность страницы профиля, для всех пользователей"""
         response = self.guest_client.get('/profile/Anon/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_url(self):
-        """Проверить доступность страницы поста, для всех пользователей"""
         response = self.guest_client.get(f'/posts/{self.post.id}/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_edit_url_author(self):
-        """
-        Проверить доступность страницы редактирования поста,
-         только для автора
-        """
         response_author = self.authorized_user.get(
             f'/posts/{self.post.id}/edit/'
         )
@@ -65,10 +57,6 @@ class PostURLTests(TestCase):
         )
 
     def test_post_edit_url_all(self):
-        """
-        Проверить доступность страницы редактирования поста,
-         только для гостей
-        """
         response_all = self.guest_client.get(
             f'/posts/{self.post.id}/edit/'
         )
@@ -77,10 +65,6 @@ class PostURLTests(TestCase):
         )
 
     def test_post_edit_not_author(self):
-        """
-        Проверить доступность страницы редактирования поста,
-         для пользователей сайта (не авторы)
-        """
         response_not_author = self.authorized_not_author_client.get(
             f'/posts/{self.post.id}/edit/'
         )
@@ -89,10 +73,6 @@ class PostURLTests(TestCase):
         )
 
     def test_post_create_url(self):
-        """
-        Проверить доступность страницы создания поста,
-         только для пользователей сайта
-        """
         response_authorized = self.authorized_user.get('/create/')
         response_not_author = self.guest_client.get('/create/')
 
@@ -103,16 +83,11 @@ class PostURLTests(TestCase):
         )
 
     def test_404_url_all(self):
-        """
-        Проверить доступность несуществующей страницы,
-         для всех
-        """
         response = self.guest_client.get('/perpetual motion machine/')
 
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_urls_uses_correct_template(self):
-        """Проверить название шаблонов."""
         templates_url_names = {
             '/group/test-slug/': 'posts/group_list.html',
             '/profile/Anon/': 'posts/profile.html',

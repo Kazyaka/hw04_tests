@@ -36,7 +36,6 @@ class PostPagesTests(TestCase):
             self.assertEqual(post.group.id, self.post.group.id)
 
     def test_forms_show_correct(self):
-        """Проверка коректности формы."""
         context = {
             reverse('posts:post_create'),
             reverse('posts:post_edit', kwargs={'post_id': self.post.id, }),
@@ -52,12 +51,10 @@ class PostPagesTests(TestCase):
                     forms.fields.ChoiceField)
 
     def test_index_page_show_correct_context(self):
-        """Шаблон index.html сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:index'))
         self.check_post_info(response.context['page_obj'][0])
 
     def test_groups_page_show_correct_context(self):
-        """Шаблон group_list.html сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse(
                 'posts:group_posts',
@@ -67,7 +64,6 @@ class PostPagesTests(TestCase):
         self.check_post_info(response.context['page_obj'][0])
 
     def test_profile_page_show_correct_context(self):
-        """Шаблон profile.html сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse(
                 'posts:profile',
@@ -76,7 +72,6 @@ class PostPagesTests(TestCase):
         self.check_post_info(response.context['page_obj'][0])
 
     def test_detail_page_show_correct_context(self):
-        """Шаблон post_detail.html сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse(
                 'posts:post_detail',
@@ -89,7 +84,7 @@ class PaginatorTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        NUMBER_OF_TEST_POSTS = 15  # Число тестовых постов
+        NUMBER_OF_TEST_POSTS = 15
 
         list_of_posts: Post = []
 
@@ -117,14 +112,13 @@ class PaginatorTest(TestCase):
         Post.objects.bulk_create(list_of_posts)
 
     def test_paginator_on_three_pages(self):
-        """Проверка работы паджинатора."""
         group_page = '/group/test-slug/'
         profile_page = '/profile/Anon/'
         index_page = '/'
 
         second_page = '?page=2'
 
-        POSTS_NUMBER_ON_SECOND_PAGE: int = 5  # Число постов на 2 странице
+        POSTS_NUMBER_ON_SECOND_PAGE: int = 5
 
         page_expected_posts = {
             group_page: settings.NUM_OF_POSTS,

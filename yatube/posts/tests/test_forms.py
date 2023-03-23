@@ -25,7 +25,6 @@ class PostFormTests(TestCase):
         self.authorized_user.force_login(self.post_author)
 
     def test_authorized_user_create_post(self):
-        """Проверить создание записи авторизированным клиентом."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
@@ -49,7 +48,6 @@ class PostFormTests(TestCase):
         self.assertEqual(post.group_id, form_data['group'])
 
     def test_authorized_user_edit_post(self):
-        """Проверить редактирование записи авторизированным клиентом."""
         post = Post.objects.create(
             text='Текст поста для редактирования',
             author=self.post_author,
@@ -77,7 +75,6 @@ class PostFormTests(TestCase):
         self.assertEqual(post.group_id, form_data['group'])
 
     def test_nonauthorized_user_create_post(self):
-        """Проверить создание записи не авторизированным пользователем."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',

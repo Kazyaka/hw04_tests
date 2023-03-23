@@ -9,7 +9,6 @@ POST_TEXT_LIMIT: int = 15
 
 
 class PostModelTest(TestCase):
-    """Тесты модели Post"""
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -27,12 +26,10 @@ class PostModelTest(TestCase):
         )
 
     def test_models_have_correct_object_names(self):
-        """Проверить, что у модели Post корректно работает __str__."""
         models = PostModelTest.post
         self.assertEqual(models.text[:POST_TEXT_LIMIT], models.__str__())
 
     def test_verbose_name(self):
-        """Проверить verbose_name в модели Post"""
         field_verboses = {
             'text': 'Текст поста',
             'pub_date': 'Дата публикации',
@@ -48,7 +45,6 @@ class PostModelTest(TestCase):
 
 
 class GroupModelTest(TestCase):
-    """Тесты модели Group"""
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -60,12 +56,10 @@ class GroupModelTest(TestCase):
         )
 
     def test_group_model_names(self):
-        """Проверить, что у модели Group корректное title"""
         group = GroupModelTest.group
         self.assertEqual(group.title, group.__str__())
 
     def test_verbose_name(self):
-        """Проверить verbose_name в модели Group"""
         field_verboses = {
             'title': 'Название группы',
             'slug': 'Адрес группы',
@@ -79,7 +73,6 @@ class GroupModelTest(TestCase):
                 )
 
     def test_help_text(self):
-        """Проверить help_text в модели Group"""
         field_help = {
             'description': 'введите описание группы (максимум 400 символов)'
         }

@@ -49,6 +49,12 @@ class PostPagesTests(TestCase):
                 self.assertIsInstance(
                     response.context['form'].fields['group'],
                     forms.fields.ChoiceField)
+                if reverse_page == reverse('posts:post_create'):
+                    self.assertEqual(
+                        response.context['is_edit'], False)
+                else:
+                    self.assertEqual(
+                        response.context['is_edit'], True)
 
     def test_index_page_show_correct_context(self):
         response = self.authorized_client.get(reverse('posts:index'))

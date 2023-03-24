@@ -13,6 +13,9 @@ class PostFormTests(TestCase):
         cls.post_author = User.objects.create_user(
             username='post_author',
         )
+        cls.non_post_author = User.objects.create_user(
+            username='non_post_author',
+        )
         cls.group = Group.objects.create(
             title='Тестовое название группы',
             slug='test_slug',
@@ -23,8 +26,11 @@ class PostFormTests(TestCase):
         self.guest_user = Client()
         self.authorized_user = Client()
         self.authorized_user.force_login(self.post_author)
+        self.authorized_user_second = Client()
+        self.authorized_user_second.force_login(self.non_post_author)
 
     def test_authorized_user_create_post(self):
+        "Проверка создания поста авторизованным пользователем"
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
@@ -48,6 +54,7 @@ class PostFormTests(TestCase):
         self.assertEqual(post.group_id, form_data['group'])
 
     def test_authorized_user_edit_post(self):
+        "Проверка редактирования поста авторизованным пользователем"
         post = Post.objects.create(
             text='Текст поста для редактирования',
             author=self.post_author,
@@ -69,12 +76,14 @@ class PostFormTests(TestCase):
             reverse('posts:post_detail', kwargs={'post_id': post.id})
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        post = Post.objects.latest('id')
-        self.assertEqual(post.text, form_data['text'])
-        self.assertEqual(post.author, self.post_author)
-        self.assertEqual(post.group_id, form_data['group'])
+        created_post = Post.objects.get(id=post.id)
+        self.assertEqual(created_post.text, form_data['text'])
+        self.assertEqual(created_post.author, post.author)
+        self.assertEqual(created_post.group_id, form_data['group'])
+        self.assertEqual(created_post.pub_date, post.pub_date)
 
     def test_nonauthorized_user_create_post(self):
+        "Проверка создания поста неавторизованным пользователем"
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
@@ -89,3 +98,83 @@ class PostFormTests(TestCase):
         redirect = reverse('login') + '?next=' + reverse('posts:post_create')
         self.assertRedirects(response, redirect)
         self.assertEqual(Post.objects.count(), posts_count)
+
+    def test_nonauthorized_user_edit_post(self):
+        "Проверка редактирования поста неавторизованным пользователем"
+        posts_count = Post.objects.count()
+        post = Post.objects.create(
+            text='Текст поста для редактирования',
+            author=self.post_author,
+            group=self.group,
+        )
+        form_data = {
+            'text': 'Отредактированный текст поста',
+            'group': self.group.id,
+        }
+        response = self.guest_user.post(
+            reverse(
+                'posts:post_edit',
+                args=[post.id]),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        created_post = Post.objects.get(id=post.id)
+        redirect = reverse('login') + '?next=' + reverse('posts:post_edit',
+                                                         kwargs={'post_id':
+                                                                 post.id})
+        self.assertRedirects(response, redirect)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
+        self.assertEqual(created_post.pub_date, post.pub_date)
+
+    def test_authorized_user_not_edit_post(self):
+        "Проверка невозможности редактирования чужого поста"
+        "авторизованным пользователем"
+        posts_count = Post.objects.count()
+        post = Post.objects.create(
+            text='Текст поста для редактирования',
+            author=self.post_author,
+            group=self.group,
+        )
+        form_data = {
+            'text': 'Отредактированный текст поста',
+            'group': self.group.id,
+        }
+        response = self.authorized_user_second.post(
+            reverse(
+                'posts:post_edit',
+                args=[post.id]),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        redirect = reverse('posts:post_detail', kwargs={'post_id': post.id})
+        self.assertRedirects(response, redirect)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
+        created_post = Post.objects.get(id=post.id)
+        self.assertEqual(post.text, created_post.text)
+        self.assertEqual(post.author, created_post.author)
+        self.assertEqual(post.group, created_post.group)
+        self.assertEqual(post.pub_date, created_post.pub_date)
+
+    def test_authorized_user_create_post_without_group(self):
+        "Проверка создания поста авторизованным пользователем"
+        posts_count = Post.objects.count()
+        form_data = {
+            'text': 'Текст поста',
+        }
+        response = self.authorized_user.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True
+        )
+        self.assertRedirects(
+            response,
+            reverse(
+                'posts:profile',
+                kwargs={'username': self.post_author.username})
+        )
+        self.assertEqual(Post.objects.count(), posts_count + 1)
+        post = Post.objects.latest('id')
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.author, self.post_author)

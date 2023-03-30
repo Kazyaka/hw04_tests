@@ -3,8 +3,6 @@ from django import forms
 
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.conf import settings
-
 
 from ..models import Group, Post, User
 
@@ -58,7 +56,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(task_text_0, self.post.text)
         self.assertEqual(task_author_0, self.post.author)
         self.assertEqual(task_group_0, self.post.group)
-    
+
     def test_group_list_page_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse
@@ -70,7 +68,7 @@ class PostPagesTests(TestCase):
         task_group_0 = first_object.group
         self.assertEqual(task_text_0, self.post.text)
         self.assertEqual(task_group_0, self.group)
-    
+
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:profile',
@@ -90,7 +88,7 @@ class PostPagesTests(TestCase):
         first_object = response.context['post']
         task_text_0 = first_object.text
         self.assertEqual(task_text_0, self.post.text)
-    
+
     def test_edit_post_page_show_correct_context(self):
         """Шаблон edit_post сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:post_edit',
@@ -103,7 +101,7 @@ class PostPagesTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
-    
+
     def test_create_post_page_show_correct_context(self):
         """Шаблон create_post сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:post_create'))
@@ -123,7 +121,7 @@ class PostPagesTests(TestCase):
         first_object = response.context['page_obj'][0]
         group = first_object.group.title
         self.assertEqual(group, self.group.title)
-    
+
     def test_post_with_group_on_group_list_page(self):
         """Если при создании поста указать группу,"""
         """ пост появляется на странице группы"""
@@ -133,7 +131,7 @@ class PostPagesTests(TestCase):
         first_object = response.context['page_obj'][0]
         group = first_object.group.title
         self.assertEqual(group, self.group.title)
-    
+
     def test_post_with_group_on_profile_page(self):
         """Если при создании поста указать группу,"""
         """ пост появляется на странице профиля"""
@@ -143,7 +141,7 @@ class PostPagesTests(TestCase):
         first_object = response.context['page_obj'][0]
         group = first_object.group.title
         self.assertEqual(group, self.group.title)
-    
+
     def test_post_not_in_wrong_group(self):
         new_test_group = Group.objects.create(
             title='Другая тестовая группа',
@@ -174,7 +172,7 @@ class PaginatorTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user_pag)
-    
+
     def test_paginator_index_page(self):
         response_first = self.authorized_client.get(reverse('posts:index'))
         response_second = self.authorized_client.get(reverse('posts:index')
@@ -183,7 +181,9 @@ class PaginatorTests(TestCase):
         self.assertEqual(len(response_second.context['page_obj']), 5)
 
     def test_paginator_group_list_page(self):
-        response_first = self.authorized_client.get(reverse('posts:group_posts', kwargs={'slug': self.group_pag.slug}))
+        response_first = (self.authorized_client.get
+                          (reverse('posts:group_posts',
+                                   kwargs={'slug': self.group_pag.slug})))
         response_second = (self.authorized_client.get
                            (reverse('posts:group_posts',
                                     kwargs={'slug':
@@ -201,4 +201,3 @@ class PaginatorTests(TestCase):
                                             self.user_pag}) + '?page=2'))
         self.assertEqual(len(response_first.context['page_obj']), 10)
         self.assertEqual(len(response_second.context['page_obj']), 5)
-    

@@ -120,10 +120,10 @@ class PostPagesTests(TestCase):
                 self.assertIsInstance(form_field, expected)
                 if value == reverse('posts:post_create'):
                     self.assertEqual(
-                        response.context['is_edit'], False) 
+                        response.context['is_edit'], False)
                 else:
                     self.assertEqual(
-                        response.context['is_edit'], True) 
+                        response.context['is_edit'], True)
 
     def test_create_post_page_show_correct_context(self):
         """Шаблон create_post сформирован с правильным контекстом."""
@@ -178,6 +178,7 @@ FIRST_POST = 1
 FINAL_POST = 16
 POSTS_ON_FIRST_PAGE = 10
 POSTS_ON_FINAL_PAGE = 5
+
 
 class PaginatorTests(TestCase):
     @classmethod

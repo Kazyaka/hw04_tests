@@ -6,6 +6,7 @@ User = get_user_model()
 
 NUMBER_OF_POSTS = 15
 
+
 class Group(models.Model):
     title = models.CharField(max_length=200, verbose_name='Название группы')
     slug = models.SlugField(max_length=55, unique=True,

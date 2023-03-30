@@ -119,13 +119,14 @@ class PostFormTests(TestCase):
             follow=True
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        created_post = Post.objects.get(id=post.id)
+        id_of_post = Post.objects.get(id=post.id)
         redirect = reverse('login') + '?next=' + reverse('posts:post_edit',
                                                          kwargs={'post_id':
                                                                  post.id})
         self.assertRedirects(response, redirect)
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertEqual(created_post.pub_date, post.pub_date)
+        self.assertEqual(id_of_post.pub_date, post.pub_date)
+        self.assertEqual(id_of_post.author, post.author)
 
     def test_authorized_user_not_edit_post(self):
         "Проверка невозможности редактирования чужого поста"
@@ -151,11 +152,11 @@ class PostFormTests(TestCase):
         redirect = reverse('posts:post_detail', kwargs={'post_id': post.id})
         self.assertRedirects(response, redirect)
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        created_post = Post.objects.get(id=post.id)
-        self.assertEqual(post.text, created_post.text)
-        self.assertEqual(post.author, created_post.author)
-        self.assertEqual(post.group, created_post.group)
-        self.assertEqual(post.pub_date, created_post.pub_date)
+        id_of_post = Post.objects.get(id=post.id)
+        self.assertEqual(post.text, id_of_post.text)
+        self.assertEqual(post.author, id_of_post.author)
+        self.assertEqual(post.group, id_of_post.group)
+        self.assertEqual(post.pub_date, id_of_post.pub_date)
 
     def test_authorized_user_create_post_without_group(self):
         "Проверка создания поста авторизованным пользователем"
@@ -178,3 +179,4 @@ class PostFormTests(TestCase):
         post = Post.objects.latest('id')
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, self.post_author)
+        self.assertEqual(post.group, None)

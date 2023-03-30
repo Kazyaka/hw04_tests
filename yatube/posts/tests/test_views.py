@@ -64,10 +64,19 @@ class PostPagesTests(TestCase):
                                                kwargs={'slug':
                                                        self.group.slug}))
         first_object = response.context['page_obj'][0]
+        group_of_post = response.context['group']
+        task_title = group_of_post.title
+        task_slug = group_of_post.slug
+        task_description = group_of_post.description
         task_text_0 = first_object.text
+        task_author_0 = first_object.author
         task_group_0 = first_object.group
         self.assertEqual(task_text_0, self.post.text)
-        self.assertEqual(task_group_0, self.group)
+        self.assertEqual(task_author_0, self.post.author)
+        self.assertEqual(task_group_0, self.post.group)
+        self.assertEqual(task_title, self.group.title)
+        self.assertEqual(task_slug, self.group.slug)
+        self.assertEqual(task_description, self.group.description)
 
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
@@ -75,10 +84,14 @@ class PostPagesTests(TestCase):
                                                       kwargs={'username':
                                                               self.user}))
         first_object = response.context['page_obj'][0]
+        author_of_post = response.context['author']
         task_text_0 = first_object.text
         task_author_0 = first_object.author
+        task_group_0 = first_object.group
         self.assertEqual(task_text_0, self.post.text)
         self.assertEqual(task_author_0, self.post.author)
+        self.assertEqual(task_group_0, self.post.group)
+        self.assertEqual(author_of_post, self.post.author)
 
     def test_post_detail_page_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -87,7 +100,11 @@ class PostPagesTests(TestCase):
                                                               self.post.pk}))
         first_object = response.context['post']
         task_text_0 = first_object.text
+        task_author_0 = first_object.author
+        task_group_0 = first_object.group
         self.assertEqual(task_text_0, self.post.text)
+        self.assertEqual(task_author_0, self.post.author)
+        self.assertEqual(task_group_0, self.post.group)
 
     def test_edit_post_page_show_correct_context(self):
         """Шаблон edit_post сформирован с правильным контекстом."""
@@ -101,6 +118,12 @@ class PostPagesTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+                if value == reverse('posts:post_create'):
+                    self.assertEqual(
+                        response.context['is_edit'], False) 
+                else:
+                    self.assertEqual(
+                        response.context['is_edit'], True) 
 
     def test_create_post_page_show_correct_context(self):
         """Шаблон create_post сформирован с правильным контекстом."""
@@ -118,9 +141,8 @@ class PostPagesTests(TestCase):
         """Если при создании поста указать группу,"""
         """ пост появляется на главной странице"""
         response = self.authorized_client.get(reverse('posts:index'))
-        first_object = response.context['page_obj'][0]
-        group = first_object.group.title
-        self.assertEqual(group, self.group.title)
+        first_object = response.context['page_obj']
+        self.assertIn(Post.objects.get(group=self.post.group), first_object)
 
     def test_post_with_group_on_group_list_page(self):
         """Если при создании поста указать группу,"""
@@ -138,11 +160,11 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:profile',
                                                       kwargs={'username':
                                                               self.user}))
-        first_object = response.context['page_obj'][0]
-        group = first_object.group.title
-        self.assertEqual(group, self.group.title)
+        first_object = response.context['page_obj']
+        self.assertIn(Post.objects.get(group=self.post.group), first_object)
 
     def test_post_not_in_wrong_group(self):
+        """"Проверка что пост не ушел не в ту группу"""
         new_test_group = Group.objects.create(
             title='Другая тестовая группа',
             slug='another_test-slug',
@@ -151,6 +173,11 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(new_test_url)
         self.assertNotIn(PostPagesTests.post, response.context['page_obj'])
 
+
+FIRST_POST = 1
+FINAL_POST = 16
+POSTS_ON_FIRST_PAGE = 10
+POSTS_ON_FINAL_PAGE = 5
 
 class PaginatorTests(TestCase):
     @classmethod
@@ -167,7 +194,7 @@ class PaginatorTests(TestCase):
                  author=cls.user_pag,
                  group=cls.group_pag,
                  )
-            for i in range(1, 16)])
+            for i in range(FIRST_POST, FINAL_POST)])
 
     def setUp(self):
         self.authorized_client = Client()
@@ -177,8 +204,10 @@ class PaginatorTests(TestCase):
         response_first = self.authorized_client.get(reverse('posts:index'))
         response_second = self.authorized_client.get(reverse('posts:index')
                                                      + '?page=2')
-        self.assertEqual(len(response_first.context['page_obj']), 10)
-        self.assertEqual(len(response_second.context['page_obj']), 5)
+        self.assertEqual(len(response_first.context['page_obj']),
+                         POSTS_ON_FIRST_PAGE)
+        self.assertEqual(len(response_second.context['page_obj']),
+                         POSTS_ON_FINAL_PAGE)
 
     def test_paginator_group_list_page(self):
         response_first = (self.authorized_client.get
@@ -188,8 +217,10 @@ class PaginatorTests(TestCase):
                            (reverse('posts:group_posts',
                                     kwargs={'slug':
                                             self.group_pag.slug}) + '?page=2'))
-        self.assertEqual(len(response_first.context['page_obj']), 10)
-        self.assertEqual(len(response_second.context['page_obj']), 5)
+        self.assertEqual(len(response_first.context['page_obj']),
+                         POSTS_ON_FIRST_PAGE)
+        self.assertEqual(len(response_second.context['page_obj']),
+                         POSTS_ON_FINAL_PAGE)
 
     def test_paginator_profile_page(self):
         response_first = (self.authorized_client.get

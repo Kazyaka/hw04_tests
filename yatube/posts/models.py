@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+NUMBER_OF_POSTS = 15
 
 class Group(models.Model):
     title = models.CharField(max_length=200, verbose_name='Название группы')
@@ -48,4 +49,4 @@ class Post(models.Model):
         verbose_name_plural = 'Посты'
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:NUMBER_OF_POSTS]

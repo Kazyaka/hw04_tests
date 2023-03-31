@@ -30,7 +30,7 @@ class PostFormTests(TestCase):
         self.authorized_user_second.force_login(self.non_post_author)
 
     def test_authorized_user_create_post(self):
-        "Проверка создания поста авторизованным пользователем"
+        """Проверка создания поста авторизованным пользователем."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
@@ -54,7 +54,7 @@ class PostFormTests(TestCase):
         self.assertEqual(post.group_id, form_data['group'])
 
     def test_authorized_user_edit_post(self):
-        "Проверка редактирования поста авторизованным пользователем"
+        """Проверка редактирования поста авторизованным пользователем."""
         post = Post.objects.create(
             text='Текст поста для редактирования',
             author=self.post_author,
@@ -83,7 +83,7 @@ class PostFormTests(TestCase):
         self.assertEqual(created_post.pub_date, post.pub_date)
 
     def test_nonauthorized_user_create_post(self):
-        "Проверка создания поста неавторизованным пользователем"
+        """Проверка создания поста неавторизованным пользователем."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
@@ -100,7 +100,7 @@ class PostFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count)
 
     def test_nonauthorized_user_edit_post(self):
-        "Проверка редактирования поста неавторизованным пользователем"
+        """Проверка редактирования поста неавторизованным пользователем."""
         posts_count = Post.objects.count()
         post = Post.objects.create(
             text='Текст поста для редактирования',
@@ -119,18 +119,19 @@ class PostFormTests(TestCase):
             follow=True
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        id_of_post = Post.objects.get(id=post.id)
+        edited_post = Post.objects.get(id=post.id)
         redirect = reverse('login') + '?next=' + reverse('posts:post_edit',
                                                          kwargs={'post_id':
                                                                  post.id})
         self.assertRedirects(response, redirect)
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertEqual(id_of_post.pub_date, post.pub_date)
-        self.assertEqual(id_of_post.author, post.author)
+        self.assertEqual(edited_post.pub_date, post.pub_date)
+        self.assertEqual(edited_post.author, post.author)
+        self.assertEqual(edited_post.text, post.text)
+        self.assertEqual(edited_post.group, post.group)
 
     def test_authorized_user_not_edit_post(self):
-        "Проверка невозможности редактирования чужого поста"
-        "авторизованным пользователем"
+        """Проверка что авт. пользователь не сможет редатировать чужой пост."""
         posts_count = Post.objects.count()
         post = Post.objects.create(
             text='Текст поста для редактирования',
@@ -152,14 +153,14 @@ class PostFormTests(TestCase):
         redirect = reverse('posts:post_detail', kwargs={'post_id': post.id})
         self.assertRedirects(response, redirect)
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        id_of_post = Post.objects.get(id=post.id)
-        self.assertEqual(post.text, id_of_post.text)
-        self.assertEqual(post.author, id_of_post.author)
-        self.assertEqual(post.group, id_of_post.group)
-        self.assertEqual(post.pub_date, id_of_post.pub_date)
+        edited_post = Post.objects.get(id=post.id)
+        self.assertEqual(post.text, edited_post.text)
+        self.assertEqual(post.author, edited_post.author)
+        self.assertEqual(post.group, edited_post.group)
+        self.assertEqual(post.pub_date, edited_post.pub_date)
 
     def test_authorized_user_create_post_without_group(self):
-        "Проверка создания поста авторизованным пользователем"
+        """Проверка создания поста авторизованным пользователем."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
